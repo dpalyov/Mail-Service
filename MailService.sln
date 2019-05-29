@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2047
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MailService", "MailService\MailService.csproj", "{C2EF7A0E-2251-4998-857B-0AED1B0165EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MailService", "MailService\MailService.csproj", "{C2EF7A0E-2251-4998-857B-0AED1B0165EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MailServiceTests", "MailServiceTests\MailServiceTests.csproj", "{341B1818-41B0-410E-B39A-6EF3D2DEB0CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{C2EF7A0E-2251-4998-857B-0AED1B0165EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2EF7A0E-2251-4998-857B-0AED1B0165EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2EF7A0E-2251-4998-857B-0AED1B0165EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{341B1818-41B0-410E-B39A-6EF3D2DEB0CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{341B1818-41B0-410E-B39A-6EF3D2DEB0CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{341B1818-41B0-410E-B39A-6EF3D2DEB0CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{341B1818-41B0-410E-B39A-6EF3D2DEB0CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

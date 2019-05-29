@@ -1,0 +1,18 @@
+{
+	"SmtpConfiguration" : {
+      "Host": "vistsmtp.visteon.com",
+      "Port": "",
+      "UseDefaultCredentials": "false",
+	  "Credentials": {
+	    "Username": "",
+	    "Password": ""
+	  }
+	},
+	"MailConfiguration" :{
+	  "Sender": "SOFIA7@visteon.com",
+      "Recepients": "dpalyov@visteon.com",
+      "UseHtmlBody": "false"
+	}
+     
+      
+}
