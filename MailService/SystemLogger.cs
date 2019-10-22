@@ -9,7 +9,7 @@ namespace MailService
         {
             try
             {
-                using (var sr = new StreamWriter("Log.txt", true, Encoding.UTF8,2400))
+                using (var sr = new StreamWriter("MailServiceLog.txt", true, Encoding.UTF8,2400))
                 {
                     await sr.WriteAsync(message + "\n");
                 }

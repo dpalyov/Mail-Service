@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -13,7 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MailService\MailService.csproj" />
+    <Reference Include="MailService">
+      <HintPath>..\MailService\bin\Debug\netcoreapp2.1\MailService.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

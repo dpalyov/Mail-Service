@@ -1,3 +1,4 @@
+using MailService;
 using Xunit;
 namespace MailServiceTests
 {
@@ -12,7 +13,7 @@ namespace MailServiceTests
             var useDefaultCredentials = true;
 
             //act
-            var ms = new MailService.MailService();
+            var ms = new MailClient(false);
             ms.ConfigureClient(host,port,useDefaultCredentials);
 
             //assert
@@ -32,7 +33,7 @@ namespace MailServiceTests
             var from = "sender@visteon.com";
 
             //act
-            var ms = new MailService.MailService();
+            var ms = new MailClient(false);
             ms.ConfigureMessage(subject,body,to, from, useHtmlBody);
 
             //assert
@@ -53,7 +54,7 @@ namespace MailServiceTests
         {
             //arrange
             
-            var ms = new MailService.MailService();
+            var ms = new MailClient(false);
             ms.ConfigureClient();
             ms.ConfigureMessage("Test", "test msg");
            
@@ -69,7 +70,7 @@ namespace MailServiceTests
         public void TestSendMailWithSuccessResponse()
         {
             //arrange
-            var ms = new MailService.MailService();
+            var ms = new MailClient(false);
             ms.ConfigureClient();
             ms.ConfigureMessage("Test", "test msg");
             var expectedResult = 0;
