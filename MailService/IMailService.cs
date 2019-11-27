@@ -14,7 +14,7 @@ namespace MailService
             string to = null,
             string from = null,
             bool htmEnabledBody = false);
-        int SendMessage();
+        int SendMessage(Dictionary<string,string> opts = null);
 
     }
 }

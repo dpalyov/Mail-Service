@@ -3,6 +3,7 @@ using System.Net;
 using System;
 using System.IO;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace MailService
 {
@@ -65,7 +66,7 @@ namespace MailService
             }
             catch (NullReferenceException)
             {
-                SystemLogger.Log("Possibly Configuration object is not properly configured. If you are not using a json configuration, please provide the arguments through the public properties of the Configuration object");
+                SystemLogger.Log("Possibly Configuration object is not properly configured. If you are not using a json configuration, please provide the arguments to the ConfigurationClient method");
             }
 
         }
@@ -101,13 +102,25 @@ namespace MailService
         }
 
 
-        public int SendMessage()
+        public int SendMessage(Dictionary<string,string> opts = null)
         {
             try
             {
-                SystemLogger.Log("Sending...");
+                //SystemLogger.Log("Sending...");
                 _client.Send(_mail);
                 SystemLogger.Log($"Sent successfully on {DateTime.Now}");
+
+                
+                if(opts != null)
+                {
+                    foreach (var kv in opts)
+                    {
+                        SystemLogger.Log($"{kv.Key}: {kv.Value}");
+                    }
+
+                }
+
+
                 return 0;
             }
             catch(SmtpException ex)
