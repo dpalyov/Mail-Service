@@ -2,7 +2,7 @@
   "SmtpConfiguration": {
     "Host": "vistsmtp.visteon.com",
     "Port": "25",
-    "UseDefaultCredentials": "true",
+    "UseDefaultCredentials": "false",
     "Credentials": {
       "Username": "",
       "Password": ""

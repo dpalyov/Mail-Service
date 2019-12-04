@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace MailService
 {
@@ -12,21 +13,25 @@ namespace MailService
         private readonly MailMessage _mail;
         private readonly SmtpClient _client;
         private readonly Configuration _config;
+        private readonly SystemLogger _logger;
 
         public MailMessage Mail { get => _mail; private set { } }
         public SmtpClient Client { get => _client; private set { } }
 
-        public MailClient()
-        {
-            _mail = new MailMessage();
-            _client = new SmtpClient();
-        }
-       
 
-        public MailClient(bool useConfigFile)
+        public MailClient(string loggerPath)
         {
             _mail = new MailMessage();
             _client = new SmtpClient();
+            _logger = new SystemLogger(loggerPath);
+        }
+
+
+        public MailClient(bool useConfigFile, string loggerPath)
+        {
+            _mail = new MailMessage();
+            _client = new SmtpClient();
+            _logger = new SystemLogger(loggerPath);
 
             if (useConfigFile)
             {
@@ -39,83 +44,145 @@ namespace MailService
             }
         }
 
-        public void ConfigureClient(string host = null, int port = 0, bool? defaultCredentials = null, ICredentialsByHost credentials = null)
+        public void ConfigureClient(string host, int port = 25, bool defaultCredentials = true, ICredentialsByHost credentials = null)
         {
 
             try
             {
-                _client.Host = host ?? _config.SmtpConfiguration.Host;
-            
-                port = port == 0 ? _config.SmtpConfiguration.Port : port;
+                _client.Host = host;
+                _client.Port = port;
+                _client.UseDefaultCredentials = defaultCredentials;
 
-                if(port != 0)
+                if (!defaultCredentials && credentials != null)
                 {
-                    _client.Port = port;
+                    _client.Credentials = credentials;
+                }
+               
+                if(!defaultCredentials && credentials == null)
+                {
+                    throw new NullReferenceException("Must provide valid credentials...");
                 }
 
-                _client.UseDefaultCredentials = defaultCredentials ?? _config.SmtpConfiguration.UseDefaultCredentials;
+                _client.DeliveryMethod = SmtpDeliveryMethod.Network;
+            }
+            catch (NullReferenceException ex)
+            {
+                _logger.Log(ex.Message);
+            }
 
-                if (!_client.UseDefaultCredentials)
+
+        }
+
+        public void ConfigureClient()
+        {
+            _client.Host = _config.SmtpConfiguration.Host;
+            _client.Port = _config.SmtpConfiguration.Port;
+            _client.UseDefaultCredentials = _config.SmtpConfiguration.UseDefaultCredentials;
+
+       
+            try
+            {
+
+                if (!_client.UseDefaultCredentials && _config.SmtpConfiguration.Credentials.Username != "" && _config.SmtpConfiguration.Credentials.Password != "")
                 {
                     var username = _config.SmtpConfiguration.Credentials.Username;
                     var password = _config.SmtpConfiguration.Credentials.Password;
-                    _client.Credentials = credentials ?? new NetworkCredential(username, password);
+                    _client.Credentials = new NetworkCredential(username, password);
                 }
-             
-                _client.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+
+
+                if (!_client.UseDefaultCredentials && (_config.SmtpConfiguration.Credentials.Username != "" || _config.SmtpConfiguration.Credentials.Password != ""))
+                {
+                    throw new NullReferenceException("Must provide valid credentials...");
+                }
+
             }
-            catch (NullReferenceException)
+            catch(NullReferenceException ex)
             {
-                SystemLogger.Log("Possibly Configuration object is not properly configured. If you are not using a json configuration, please provide the arguments to the ConfigurationClient method");
+                _logger.Log(ex.Message);
             }
 
+            _client.DeliveryMethod = SmtpDeliveryMethod.Network;
         }
 
         public void ConfigureMessage(
+            string to,
+            string from,
             string subject = "",
             string body = "",
-            string to = null, 
-            string from = null, 
             bool htmEnabledBody = false)
         {
-            try
-            {
-                var recepients = to ?? _config.MailConfiguration.Recepients;
-                var recepientsList = recepients.Split(";");
 
-                foreach (var recepient in recepientsList)
-                {
-                    _mail.To.Add(recepient);
-                }
+            var recepientsList = to.Split(";");
 
-                var sender = from ?? _config.MailConfiguration.Sender;
-                _mail.From = new MailAddress(sender);
-                _mail.Body = body;
-                _mail.IsBodyHtml = htmEnabledBody ? htmEnabledBody : _config.MailConfiguration.UseHtmlBody;
-                _mail.Subject = subject;
-            }
-            catch(NullReferenceException)
+            foreach (var recepient in recepientsList)
             {
-                SystemLogger.Log("Possibly Configuration object is not properly configured. If you are not using a json configuration, please provide the arguments through the public properties of the Configuration object");
+                _mail.To.Add(recepient);
             }
-           
+
+            _mail.From = new MailAddress(from);
+            _mail.Body = body;
+            _mail.IsBodyHtml = htmEnabledBody;
+            _mail.Subject = subject;
+
+
+        }
+        public void ConfigureMessage()
+        {
+            var recepients = _config.MailConfiguration.Recepients;
+            var recepientsList = recepients.Split(";");
+
+            foreach (var recepient in recepientsList)
+            {
+                _mail.To.Add(recepient);
+            }
+
+            var sender = _config.MailConfiguration.Sender;
+            _mail.From = new MailAddress(sender);
+            _mail.Body = _config.MailConfiguration.Message;
+            _mail.IsBodyHtml = _config.MailConfiguration.UseHtmlBody;
+            _mail.Subject = _config.MailConfiguration.Subject;
         }
 
 
-        public int SendMessage(Dictionary<string,string> opts = null)
+        public int SendMessage(Dictionary<string, string> opts = null)
         {
+
+            object userToken = null;
+
+            SendCompletedEventHandler handler = delegate (object s, AsyncCompletedEventArgs e)
+            {
+                if (e.Cancelled)
+                {
+                    _logger.Log("Message cancelled...");
+                }
+                else if (e.Error != null)
+                {
+                    _logger.Log(e.Error.GetType().ToString() + ":" + e.Error.Message);
+                }
+                else
+                {
+                    _logger.Log($"Sent successfully on {DateTime.Now}");
+
+                }
+
+                _mail.Dispose();
+                _client.Dispose();
+            };
+
+
             try
             {
-                //SystemLogger.Log("Sending...");
-                _client.Send(_mail);
-                SystemLogger.Log($"Sent successfully on {DateTime.Now}");
+                _client.SendCompleted += handler;
+                _client.SendAsync(_mail, userToken);
 
-                
-                if(opts != null)
+
+                if (opts != null)
                 {
                     foreach (var kv in opts)
                     {
-                        SystemLogger.Log($"{kv.Key}: {kv.Value}");
+                        _logger.Log($"{kv.Key}: {kv.Value}");
                     }
 
                 }
@@ -123,9 +190,9 @@ namespace MailService
 
                 return 0;
             }
-            catch(SmtpException ex)
+            catch (Exception ex)
             {
-                SystemLogger.Log(ex.Message);
+                _logger.Log(ex.GetType().ToString() + ":" + ex.Message);
                 return 1;
             }
         }

@@ -25,6 +25,10 @@ namespace MailService
     {
         public string Recepients { get; set; }
         public string Sender { get; set; }
+
+        public string Message { get; set; }
+
+        public string Subject { get; set; }
         public bool UseHtmlBody { get; set; }
     }
 }

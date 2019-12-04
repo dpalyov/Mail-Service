@@ -1,5 +1,8 @@
 using MailService;
+using System;
+using System.IO;
 using Xunit;
+
 namespace MailServiceTests
 {
     public class Tests
@@ -9,18 +12,42 @@ namespace MailServiceTests
         {
             //arrange
             var host = "test";
-            var port = 0;
-            var useDefaultCredentials = true;
 
             //act
-            var ms = new MailClient(false);
-            ms.ConfigureClient(host,port,useDefaultCredentials);
+            var ms = new MailClient(true, Directory.GetCurrentDirectory());
+            ms.ConfigureClient(host);
 
             //assert
             Assert.Equal(host, ms.Client.Host);
             Assert.True(ms.Client.UseDefaultCredentials);
-            Assert.NotEqual(port, ms.Client.Port);
+            Assert.Equal(25, ms.Client.Port);
         }
+
+        //[Fact]
+        //public void TestSmtpConfig_Throws_NullReferenceException()
+        //{
+        //    //arrange
+        //    var host = "test";
+
+        //    //act
+        //    var ms = new MailClient(true, Directory.GetCurrentDirectory());
+        //    ms.ConfigureClient(host,25,false);
+
+        //    //assert
+        //    Assert.Throws<NullReferenceException>(() => ms.ConfigureClient(host));
+        //}
+        //[Fact]
+        //public void TestSmtpConfigNoArgs_Throws_NullReferenceException()
+        //{
+        //    //arrange
+        //    //act
+
+        //    var ms = new MailClient(true, Directory.GetCurrentDirectory());
+        //    ms.ConfigureClient();
+
+        //    //assert
+        //    Assert.Throws<NullReferenceException>(() => ms.ConfigureClient());
+        //}
 
         [Fact]
         public void TestMailConfig()
@@ -33,8 +60,8 @@ namespace MailServiceTests
             var from = "sender@visteon.com";
 
             //act
-            var ms = new MailClient(false);
-            ms.ConfigureMessage(subject,body,to, from, useHtmlBody);
+            var ms = new MailClient(true, Directory.GetCurrentDirectory());
+            ms.ConfigureMessage(to,from,subject,body,useHtmlBody);
 
             //assert
             Assert.Equal(subject,ms.Mail.Subject);
@@ -45,42 +72,40 @@ namespace MailServiceTests
             Assert.Equal(from, ms.Mail.From.Address);
         }
 
-        [Theory]
-        [InlineData(2)]
-        [InlineData(-3)]
-        [InlineData(130)]
-        [InlineData(25)]
-        public void TestSendMailWithWrongResponse(int responseCode)
-        {
-            //arrange
-            
-            var ms = new MailClient(false);
-            ms.ConfigureClient();
-            ms.ConfigureMessage("Test", "test msg");
-           
-
-            //actual
-            var actualResponse = ms.SendMessage();
-
-            //Assert
-            Assert.NotEqual(responseCode, actualResponse);
-        }
-
         [Fact]
         public void TestSendMailWithSuccessResponse()
         {
+            var loggerPath = Directory.GetCurrentDirectory();
             //arrange
-            var ms = new MailClient(false);
+            var ms = new MailClient(true, loggerPath);
             ms.ConfigureClient();
-            ms.ConfigureMessage("Test", "test msg");
+            ms.ConfigureMessage();
             var expectedResult = 0;
-
 
             //actual
             var actualResponse = ms.SendMessage();
 
             //Assert
             Assert.Equal(expectedResult, actualResponse);
+        }
+
+        [Fact]
+        public void TestLog_Returns_Void()
+        {
+
+            var path = Directory.GetCurrentDirectory();
+            var logger = new SystemLogger(path);
+            var testMsg = "Test message";
+
+            logger.Log("Test message");
+
+            var logFile = Path.Combine(path, "MailServiceLog.txt");
+            var log = File.ReadAllLines(logFile);
+
+            Assert.True(File.Exists(logFile));
+            Assert.Equal(log[log.Length - 1], testMsg);
+
+
         }
     }
 }
