@@ -16,6 +16,7 @@ namespace MailService
              bool htmEnabledBody = false);
         void ConfigureMessage();
         int SendMessage(Dictionary<string,string> opts = null);
+        int SendMessageSync(Dictionary<string, string> opts = null);
 
     }
 }

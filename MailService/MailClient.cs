@@ -57,8 +57,8 @@ namespace MailService
                 {
                     _client.Credentials = credentials;
                 }
-               
-                if(!defaultCredentials && credentials == null)
+
+                if (!defaultCredentials && credentials == null)
                 {
                     throw new NullReferenceException("Must provide valid credentials...");
                 }
@@ -79,7 +79,7 @@ namespace MailService
             _client.Port = _config.SmtpConfiguration.Port;
             _client.UseDefaultCredentials = _config.SmtpConfiguration.UseDefaultCredentials;
 
-       
+
             try
             {
 
@@ -98,7 +98,7 @@ namespace MailService
                 }
 
             }
-            catch(NullReferenceException ex)
+            catch (NullReferenceException ex)
             {
                 _logger.Log(ex.Message);
             }
@@ -151,30 +151,15 @@ namespace MailService
 
             object userToken = null;
 
-            SendCompletedEventHandler handler = delegate (object s, AsyncCompletedEventArgs e)
-            {
-                if (e.Cancelled)
-                {
-                    _logger.Log("Message cancelled...");
-                }
-                else if (e.Error != null)
-                {
-                    _logger.Log(e.Error.GetType().ToString() + ":" + e.Error.Message);
-                }
-                else
-                {
-                    _logger.Log($"Sent successfully on {DateTime.Now}");
+            // SendCompletedEventHandler handler = delegate (object s, AsyncCompletedEventArgs e)
+            // {
 
-                }
-
-                _mail.Dispose();
-                _client.Dispose();
-            };
+            // };
 
 
             try
             {
-                _client.SendCompleted += handler;
+                _client.SendCompleted += new SendCompletedEventHandler(SendCompletedFeedback);
                 _client.SendAsync(_mail, userToken);
 
 
@@ -196,5 +181,54 @@ namespace MailService
                 return 1;
             }
         }
+
+        public int SendMessageSync(Dictionary<string, string> opts = null)
+        {
+            try
+            {
+                _client.SendCompleted += new SendCompletedEventHandler(SendCompletedFeedback);
+                _client.Send(_mail);
+
+
+                if (opts != null)
+                {
+                    foreach (var kv in opts)
+                    {
+                        _logger.Log($"{kv.Key}: {kv.Value}");
+                    }
+
+                }
+
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(ex.GetType().ToString() + ":" + ex.Message);
+                return 1;
+            }
+        }
+
+        private void SendCompletedFeedback(object s, AsyncCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                _logger.Log("Message cancelled...");
+            }
+            else if (e.Error != null)
+            {
+                _logger.Log(e.Error.GetType().ToString() + ":" + e.Error.Message);
+            }
+            else
+            {
+                _logger.Log($"Sent successfully on {DateTime.Now}");
+
+            }
+
+            _mail.Dispose();
+            _client.Dispose();
+        }
+
+
     }
 }
