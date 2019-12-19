@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-
+using System.Threading.Tasks;
 
 namespace MailService
 {
@@ -17,6 +17,8 @@ namespace MailService
         void ConfigureMessage();
         int SendMessage(Dictionary<string,string> opts = null);
         int SendMessageSync(Dictionary<string, string> opts = null);
+
+        int RegisterEmail(Email email);
 
     }
 }

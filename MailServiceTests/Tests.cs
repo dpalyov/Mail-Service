@@ -2,6 +2,7 @@ using MailService;
 using System;
 using System.IO;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace MailServiceTests
 {
@@ -14,7 +15,8 @@ namespace MailServiceTests
             var host = "test";
 
             //act
-            var ms = new MailClient(true, Directory.GetCurrentDirectory());
+            var logger = LoggerFactory.Create()
+            var ms = new MailClient(Log.);
             ms.ConfigureClient(host);
 
             //assert

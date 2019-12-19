@@ -5,6 +5,8 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Microsoft.Extensions.Logging;
+using LiteDB;
 
 namespace MailService
 {
@@ -13,25 +15,24 @@ namespace MailService
         private readonly MailMessage _mail;
         private readonly SmtpClient _client;
         private readonly Configuration _config;
-        private readonly SystemLogger _logger;
-
-        public MailMessage Mail { get => _mail; private set { } }
-        public SmtpClient Client { get => _client; private set { } }
+        private readonly ILogger<MailClient> _logger;
 
 
-        public MailClient(string loggerPath)
+
+        public MailClient(ILogger<MailClient> logger)
         {
             _mail = new MailMessage();
             _client = new SmtpClient();
-            _logger = new SystemLogger(loggerPath);
+            _logger = logger;
+         
         }
 
 
-        public MailClient(bool useConfigFile, string loggerPath)
+        public MailClient(bool useConfigFile, ILogger<MailClient> logger)
         {
             _mail = new MailMessage();
             _client = new SmtpClient();
-            _logger = new SystemLogger(loggerPath);
+            _logger = logger;
 
             if (useConfigFile)
             {
@@ -67,7 +68,7 @@ namespace MailService
             }
             catch (NullReferenceException ex)
             {
-                _logger.Log(ex.Message);
+                _logger.LogError(ex.Message);
             }
 
 
@@ -100,7 +101,7 @@ namespace MailService
             }
             catch (NullReferenceException ex)
             {
-                _logger.Log(ex.Message);
+                _logger.LogError(ex.Message);
             }
 
             _client.DeliveryMethod = SmtpDeliveryMethod.Network;
@@ -167,17 +168,17 @@ namespace MailService
                 {
                     foreach (var kv in opts)
                     {
-                        _logger.Log($"{kv.Key}: {kv.Value}");
+                        _logger.LogInformation($"{kv.Key}: {kv.Value}");
                     }
 
                 }
 
-
                 return 0;
+
             }
             catch (Exception ex)
             {
-                _logger.Log(ex.GetType().ToString() + ":" + ex.Message);
+                _logger.LogError(ex.GetType().ToString() + ":" + ex.Message);
                 return 1;
             }
         }
@@ -188,47 +189,65 @@ namespace MailService
             {
                 _client.SendCompleted += new SendCompletedEventHandler(SendCompletedFeedback);
                 _client.Send(_mail);
-
+                _logger.LogInformation($"Sent successfully on {DateTime.Now}");
 
                 if (opts != null)
                 {
                     foreach (var kv in opts)
                     {
-                        _logger.Log($"{kv.Key}: {kv.Value}");
+                        _logger.LogInformation($"{kv.Key}: {kv.Value}");
                     }
 
                 }
-
 
                 return 0;
             }
             catch (Exception ex)
             {
-                _logger.Log(ex.GetType().ToString() + ":" + ex.Message);
+                _logger.LogError(ex.GetType().ToString() + ":" + ex.Message);
                 return 1;
             }
         }
 
-        private void SendCompletedFeedback(object s, AsyncCompletedEventArgs e)
+        private  void SendCompletedFeedback(object s, AsyncCompletedEventArgs e)
         {
             if (e.Cancelled)
             {
-                _logger.Log("Message cancelled...");
+                _logger.LogWarning("Message cancelled...");
             }
             else if (e.Error != null)
             {
-                _logger.Log(e.Error.GetType().ToString() + ":" + e.Error.Message);
+                _logger.LogError(e.Error.GetType().ToString() + ":" + e.Error.Message);
             }
             else
             {
-                _logger.Log($"Sent successfully on {DateTime.Now}");
+                _logger.LogInformation($"Sent successfully on {DateTime.Now}");
 
             }
 
-            _mail.Dispose();
-            _client.Dispose();
+            //_mail.Dispose();
+            //_client.Dispose();
         }
 
+        public int RegisterEmail(Email email)
+        {
+            using(var db = new LiteDatabase("EmailRegister.db"))
+            {
+                var emailCollection = db.GetCollection<Email>("emails");
 
+               var doc = emailCollection.Insert(email);
+                emailCollection.EnsureIndex(x => x.Id);
+
+               if(doc != null)
+               {
+                   return 1;
+               }
+
+            }
+
+            return 0;
+        }
+
+      
     }
 }
