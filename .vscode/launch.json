@@ -10,8 +10,8 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/MailServiceTests/bin/Debug/netcoreapp2.1/MailServiceTests.dll",
-            "args": [],
+            "program": "${workspaceFolder}/MailServiceTests/bin/Debug/netcoreapp3.0/MailServiceTests.dll",
+            "args": ["appsettings.json"],
             "cwd": "${workspaceFolder}/MailServiceTests",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",

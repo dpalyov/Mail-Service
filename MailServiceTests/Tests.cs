@@ -1,113 +1,198 @@
-using MailService;
 using System;
-using System.IO;
+using System.Linq;
+using MailService;
 using Xunit;
-using Microsoft.Extensions.Logging;
 
 namespace MailServiceTests
 {
     public class Tests
     {
+        private static string testDbPath = "EmailRegisterTest.db";
         [Fact]
-        public void TestSmtpConfig()
+        public async void Test_SendMail_Returns_Int()
         {
             //arrange
-            var host = "test";
-
-            //act
-            var logger = LoggerFactory.Create()
-            var ms = new MailClient(Log.);
-            ms.ConfigureClient(host);
-
-            //assert
-            Assert.Equal(host, ms.Client.Host);
-            Assert.True(ms.Client.UseDefaultCredentials);
-            Assert.Equal(25, ms.Client.Port);
-        }
-
-        //[Fact]
-        //public void TestSmtpConfig_Throws_NullReferenceException()
-        //{
-        //    //arrange
-        //    var host = "test";
-
-        //    //act
-        //    var ms = new MailClient(true, Directory.GetCurrentDirectory());
-        //    ms.ConfigureClient(host,25,false);
-
-        //    //assert
-        //    Assert.Throws<NullReferenceException>(() => ms.ConfigureClient(host));
-        //}
-        //[Fact]
-        //public void TestSmtpConfigNoArgs_Throws_NullReferenceException()
-        //{
-        //    //arrange
-        //    //act
-
-        //    var ms = new MailClient(true, Directory.GetCurrentDirectory());
-        //    ms.ConfigureClient();
-
-        //    //assert
-        //    Assert.Throws<NullReferenceException>(() => ms.ConfigureClient());
-        //}
-
-        [Fact]
-        public void TestMailConfig()
-        {
-            //arrange
-            var subject = "test";
-            var body = "body test";
-            var useHtmlBody = true;
-            var to = "recepient@visteon.com";
-            var from = "sender@visteon.com";
-
-            //act
-            var ms = new MailClient(true, Directory.GetCurrentDirectory());
-            ms.ConfigureMessage(to,from,subject,body,useHtmlBody);
-
-            //assert
-            Assert.Equal(subject,ms.Mail.Subject);
-            Assert.Equal(body,ms.Mail.Body);
-            Assert.Equal(useHtmlBody,ms.Mail.IsBodyHtml);
-            Assert.True(ms.Mail.IsBodyHtml);
-            Assert.Equal(to, ms.Mail.To[0].Address);
-            Assert.Equal(from, ms.Mail.From.Address);
-        }
-
-        [Fact]
-        public void TestSendMailWithSuccessResponse()
-        {
-            var loggerPath = Directory.GetCurrentDirectory();
-            //arrange
-            var ms = new MailClient(true, loggerPath);
-            ms.ConfigureClient();
-            ms.ConfigureMessage();
+            var ms = new MailClient(testDbPath);
             var expectedResult = 0;
 
-            //actual
-            var actualResponse = ms.SendMessage();
+            var email = new Email()
+            {
+                To = "dpalyov@visteon.com",
+                From = "test@visteon.com",
+                UseHtmlBody = false,
+                UseStaticHtml = false,
+                Subject = "Test sub",
+                MessageBody = "Test body"
+            };
 
+            ms.ConfigureMessage(email);
+            //actual
+            var actualResponse = await ms.SendMessageAsync();
             //Assert
             Assert.Equal(expectedResult, actualResponse);
         }
 
         [Fact]
-        public void TestLog_Returns_Void()
+        public void Test_SendMessageSync_Returs_Int()
         {
 
-            var path = Directory.GetCurrentDirectory();
-            var logger = new SystemLogger(path);
-            var testMsg = "Test message";
+            var ms = new MailClient(testDbPath);
+            var expectedResult = 0;
 
-            logger.Log("Test message");
+            var email = new Email()
+            {
+                To = "dpalyov@visteon.com",
+                From = "test@visteon.com",
+                UseHtmlBody = false,
+                UseStaticHtml = false,
+                Subject = "Test sub",
+                MessageBody = "Test body"
+            };
 
-            var logFile = Path.Combine(path, "MailServiceLog.txt");
-            var log = File.ReadAllLines(logFile);
-
-            Assert.True(File.Exists(logFile));
-            Assert.Equal(log[log.Length - 1], testMsg);
+            ms.ConfigureMessage(email);
+            //actual
+            var actualResponse = ms.SendMessage();
+            //Assert
+            Assert.Equal(expectedResult, actualResponse);
 
 
         }
+
+        [Fact]
+        public void Test_RegisterEmail()
+        {
+            var email = new Email()
+            {
+                To = "dpalyov@visteon.com",
+                From = "test@visteon.com",
+                UseHtmlBody = false,
+                UseStaticHtml = false,
+                Subject = "Test sub",
+                MessageBody = "Test body",
+                CreationDate = DateTime.Now,
+                ReminderInterval = 0.05
+            };
+
+            var ms = new MailClient(testDbPath);
+            var actual = ms.RegisterEmail(email);
+
+            Assert.Equal(1, actual);
+        }
+
+        [Fact]
+        public void Test_RegisterEmails()
+        {
+            var email1 = new Email()
+            {
+                To = "dpalyov@visteon.com",
+                From = "test@visteon.com",
+                UseHtmlBody = false,
+                UseStaticHtml = false,
+                Subject = "Test sub",
+                MessageBody = "Test body",
+                CreationDate = DateTime.Now,
+                ReminderInterval = 0.05
+            };
+
+            var email2 = new Email()
+            {
+                To = "dpalyov@visteon.com",
+                From = "random@visteon.com",
+                UseHtmlBody = true,
+                UseStaticHtml = false,
+                Subject = "Test sub",
+                MessageBody = "<span style='background-color:red'>Random red text</span>",
+                CreationDate = DateTime.Now,
+                ReminderInterval = 0.05
+            };
+
+            var arr = new Email[2] { email1, email2};
+
+            var ms = new MailClient(testDbPath);
+            var actual = ms.RegisterEmails(arr);
+
+            Assert.Equal(2, actual);
+        }
+
+        [Fact]
+        public void Test_UnregisterEmail()
+        {
+
+            var ms = new MailClient(testDbPath);
+            var actual = ms.UnregisterEmail(1);
+
+            Assert.Equal(1, actual);
+        }
+
+        [Fact]
+        public void Test_ReadEmail()
+        {
+
+            var expected = new Email()
+            {
+                To = "dpalyov@visteon.com",
+                From = "test@visteon.com",
+                UseHtmlBody = false,
+                UseStaticHtml = false,
+                Subject = "Test sub",
+                MessageBody = "Test body",
+                CreationDate = DateTime.Now,
+                ReminderInterval = 0.05
+            };
+
+            var ms = new MailClient(testDbPath);
+            var actual = ms.ReadEmail(6);
+
+            Assert.Equal(expected.From, actual.From);
+            Assert.Equal(expected.To, actual.To);
+            Assert.Equal(expected.MessageBody, actual.MessageBody);
+        }
+
+
+        [Fact]
+        public void Test_ReadEmails()
+        {
+
+            var ms = new MailClient(testDbPath);
+            var actual = ms.ReadEmails(x => x.From.Equals("test@visteon.com"));
+
+            Assert.True(actual.Count() == 1);
+        }
+
+        [Theory]
+        [InlineData(6)]
+        [InlineData(3)]
+        public void Test_UpdateEmails(int id)
+        {
+
+            var ms = new MailClient(testDbPath);
+            var toUpdate = ms.ReadEmail(id);
+
+
+            if (id == 6)
+            {
+
+                toUpdate.From = "test2@gmail.com";
+                var actual = ms.UpdateEmail(toUpdate);
+                Assert.True(actual);
+            }
+            else
+            {
+                Assert.Null(toUpdate);
+            }
+
+        }
+
+        [Fact]
+        public void Test_EmptyCollection()
+        {
+            var ms = new MailClient(testDbPath);
+            var actual = ms.EmptyCollection();
+            var collection = ms.ReadEmails();
+
+            Assert.Empty(collection);
+        }
+
+
     }
 }

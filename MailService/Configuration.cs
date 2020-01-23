@@ -1,10 +1,22 @@
 ﻿
 namespace MailService
 {
+
     public class Configuration
     {
-        public SmtpConfiguration SmtpConfiguration { get; set; }
-        public MailConfiguration MailConfiguration { get; set; }
+
+        public Logging Logging {get; set;}
+        public SMTP SMTP { get; set; }
+    }
+
+    public class Logging 
+    {
+        public LogLevel LogLevel { get; set; }
+    }
+
+    public class LogLevel 
+    {
+        public string Default { get; set; }
     }
 
     public class Credentials
@@ -13,7 +25,7 @@ namespace MailService
         public string Password { get; set; }
     }
 
-    public class SmtpConfiguration
+    public class SMTP
     {
         public int Port { get; set; }
         public string Host { get; set; }
@@ -21,14 +33,5 @@ namespace MailService
         public Credentials Credentials { get; set; }
     }
 
-    public class MailConfiguration
-    {
-        public string Recepients { get; set; }
-        public string Sender { get; set; }
 
-        public string Message { get; set; }
-
-        public string Subject { get; set; }
-        public bool UseHtmlBody { get; set; }
-    }
 }

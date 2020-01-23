@@ -1,10 +1,14 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace MailService 
+namespace MailService
 {
-    public class Email 
+    public class Email
     {
+
+        private  DateTime _creationDate;
+        private  DateTime _lastNotificationDate;
+
         [Key]
         public int Id { get; set; }
 
@@ -23,9 +27,31 @@ namespace MailService
 
         public bool UseHtmlBody { get; set; }
         [Required]
-        public DateTime CreationDate { get; set; }
+        public DateTime CreationDate
+        {
+            get { return _creationDate; }
+            set 
+            {
+                _creationDate = value;
+                _lastNotificationDate = value;
+            }
+            
+        }
 
-        public int ReminderInterval { get; set; }
+        public DateTime LastNotificationDate 
+        { 
+            get {return _lastNotificationDate; }
+            set { _lastNotificationDate = value; }
+        }
+        public double ReminderInterval { get; set; }
+
+        public override string ToString()
+        {
+            base.ToString();
+            return $@"From: {From}
+                      To: {To}
+                      Subject: {Subject}";
+        }
 
     }
 }
