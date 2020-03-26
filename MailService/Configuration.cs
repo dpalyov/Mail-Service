@@ -31,6 +31,8 @@ namespace MailService
         public string Host { get; set; }
         public bool UseDefaultCredentials { get; set; }
         public Credentials Credentials { get; set; }
+
+        public string RegisterPath { get; set; }
     }
 
 

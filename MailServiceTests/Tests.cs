@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using MailService;
 using Xunit;
@@ -22,7 +23,11 @@ namespace MailServiceTests
                 UseHtmlBody = false,
                 UseStaticHtml = false,
                 Subject = "Test sub",
-                MessageBody = "Test body"
+                MessageBody = "Test body",
+                Attachments = new List<string>
+                {
+                    "mailServiceConfig.json"
+                }
             };
 
             ms.ConfigureMessage(email);
@@ -61,9 +66,11 @@ namespace MailServiceTests
         [Fact]
         public void Test_RegisterEmail()
         {
-            var email = new Email()
+            var email = new ScheduledEmail()
             {
-                To = "dpalyov@visteon.com",
+                ProjectNumber = 99999,
+                Application = "Test app",
+                To = "dpalyov33@visteon.com",
                 From = "test@visteon.com",
                 UseHtmlBody = false,
                 UseStaticHtml = false,
@@ -82,8 +89,10 @@ namespace MailServiceTests
         [Fact]
         public void Test_RegisterEmails()
         {
-            var email1 = new Email()
+            var email1 = new ScheduledEmail()
             {
+                ProjectNumber = 99999,
+                Application = "Test app",
                 To = "dpalyov@visteon.com",
                 From = "test@visteon.com",
                 UseHtmlBody = false,
@@ -94,8 +103,10 @@ namespace MailServiceTests
                 ReminderInterval = 0.05
             };
 
-            var email2 = new Email()
+            var email2 = new ScheduledEmail()
             {
+                ProjectNumber = 99999,
+                Application = "Test app",
                 To = "dpalyov@visteon.com",
                 From = "random@visteon.com",
                 UseHtmlBody = true,
@@ -106,7 +117,7 @@ namespace MailServiceTests
                 ReminderInterval = 0.05
             };
 
-            var arr = new Email[2] { email1, email2};
+            var arr = new ScheduledEmail[2] { email1, email2 };
 
             var ms = new MailClient(testDbPath);
             var actual = ms.RegisterEmails(arr);
@@ -128,8 +139,10 @@ namespace MailServiceTests
         public void Test_ReadEmail()
         {
 
-            var expected = new Email()
+            var expected = new ScheduledEmail()
             {
+                ProjectNumber = 99999,
+                Application = "Test app",
                 To = "dpalyov@visteon.com",
                 From = "test@visteon.com",
                 UseHtmlBody = false,

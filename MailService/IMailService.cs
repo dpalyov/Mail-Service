@@ -12,16 +12,16 @@ namespace MailService
         void ConfigureMessage(Email email);
         Task<int> SendMessageAsync(Dictionary<string, string> opts = null);
         int SendMessage(Dictionary<string, string> opts = null);
-        int RegisterEmail(Email email);
-        int RegisterEmails(IEnumerable<Email> collection);
+        int RegisterEmail(ScheduledEmail email);
+        int RegisterEmails(IEnumerable<ScheduledEmail> collection);
         int UnregisterEmail(int id);
-        Email ReadEmail(int id);
-        IEnumerable<Email> ReadEmails(Expression<Func<Email, bool>> predicate);
-        IEnumerable<Email> ReadEmails();
+        ScheduledEmail ReadEmail(int id);
+        IEnumerable<ScheduledEmail> ReadEmails(Expression<Func<ScheduledEmail, bool>> predicate);
+        IEnumerable<ScheduledEmail> ReadEmails();
 
         int EmptyCollection();
         bool IsDue(DateTime lastNotificationDate, double interval);
-        bool UpdateEmail(Email email);
+        bool UpdateEmail(ScheduledEmail email);
 
     }
 }

@@ -6,6 +6,7 @@
             }
         },
         "SMTP":{
+            "RegisterPath": "C:/EmailRegisterProd.db",
             "Host": "vistsmtp.visteon.com",
             "Port": "25",
             "UseDefaultCredentials": "true",

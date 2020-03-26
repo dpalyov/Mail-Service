@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using Serilog;
 using System.Threading.Tasks;
 
+
 namespace MailService
 {
     public class MailClient : IMailService, IDisposable
@@ -18,19 +19,17 @@ namespace MailService
         private readonly MailMessage _mail;
         private readonly SmtpClient _client;
         private readonly ILogger<MailClient> _logger;
-        private readonly string _registerPath;
-
-        private static string registerPath = "C:\\Users\\" + Environment.GetEnvironmentVariable("USERNAME") + "\\AppData\\Local\\EmailRegister.db";
         private static IConfigurationRoot jsonConfig = new ConfigurationBuilder()
         .AddJsonFile("mailServiceConfig.json", true, false)
         .Build();
         private static Configuration _config = jsonConfig
         .GetSection("Configuration")
         .Get<Configuration>();
+        private static string _registerPath = _config.SMTP.RegisterPath;
 
 
 
-        public MailClient() : this(_config.SMTP.Host, _config.SMTP.Port, null, registerPath)
+        public MailClient() : this(_config.SMTP.Host, _config.SMTP.Port, null, _registerPath)
         {
             var serilog = new LoggerConfiguration()
             .MinimumLevel.Debug()
@@ -43,7 +42,7 @@ namespace MailService
 
             _logger = sl.CreateLogger<MailClient>();
         }
-        public MailClient(ILogger<MailClient> logger) : this(_config.SMTP.Host, _config.SMTP.Port, logger, registerPath)
+        public MailClient(ILogger<MailClient> logger) : this(_config.SMTP.Host, _config.SMTP.Port, logger, _registerPath)
         {
 
         }
@@ -107,6 +106,14 @@ namespace MailService
             _mail.Body = email.MessageBody;
             _mail.IsBodyHtml = email.UseHtmlBody;
             _mail.Subject = email.Subject;
+
+            var attachments = email.Attachments;
+
+            foreach(var file in attachments)
+            {
+                var attachment = new Attachment(file);
+                _mail.Attachments.Add(attachment);
+            }
 
 
         }
@@ -202,31 +209,35 @@ namespace MailService
         /// </summary>
         /// <param name="email">Email model</param>
         /// <returns></returns>
-        public int RegisterEmail(Email email)
+        public int RegisterEmail(ScheduledEmail email)
         {
+
+
             using (var db = new LiteDatabase(_registerPath))
             {
-                var emailCollection = db.GetCollection<Email>("emails");
+               var emailCollection = db.GetCollection<ScheduledEmail>("emails");
 
-                var docId = emailCollection.Insert(email);
-                var docs = emailCollection.FindAll();
-                emailCollection.EnsureIndex(x => x.Id);
+               var docId = emailCollection.Insert(email);
+               var docs = emailCollection.FindAll();
+               emailCollection.EnsureIndex(x => x.Id);
 
-                if (docId != null)
-                {
-                    return 1;
-                }
+               if (docId != null)
+               {
+                   return 1;
+               }
 
             }
 
-            return 0;
+           return 0;
         }
 
-        public int RegisterEmails(IEnumerable<Email> collection)
+        public int RegisterEmails(IEnumerable<ScheduledEmail> collection)
         {
+
+        
             using (var db = new LiteDatabase(_registerPath))
             {
-                var emailCollection = db.GetCollection<Email>("emails");
+                var emailCollection = db.GetCollection<ScheduledEmail>("emails");
 
                 var result = emailCollection.InsertBulk(collection);
                 emailCollection.EnsureIndex(x => x.Id);
@@ -239,7 +250,7 @@ namespace MailService
         {
             using (var db = new LiteDatabase(_registerPath))
             {
-                var emailCollection = db.GetCollection<Email>("emails");
+                var emailCollection = db.GetCollection<ScheduledEmail>("emails");
 
                 return emailCollection.Delete(x => x.Id == id);
 
@@ -247,11 +258,11 @@ namespace MailService
 
         }
 
-        public Email ReadEmail(int id)
+        public ScheduledEmail ReadEmail(int id)
         {
             using (var db = new LiteDatabase(_registerPath))
             {
-                var emailCollection = db.GetCollection<Email>("emails");
+                var emailCollection = db.GetCollection<ScheduledEmail>("emails");
 
                 var doc = emailCollection.FindById(id);
 
@@ -262,11 +273,11 @@ namespace MailService
         }
 
 
-        public IEnumerable<Email> ReadEmails(Expression<Func<Email, bool>> predicate)
+        public IEnumerable<ScheduledEmail> ReadEmails(Expression<Func<ScheduledEmail, bool>> predicate)
         {
             using (var db = new LiteDatabase(_registerPath))
             {
-                var emailCollection = db.GetCollection<Email>("emails");
+                var emailCollection = db.GetCollection<ScheduledEmail>("emails");
 
                 var docs = emailCollection.Find(predicate);
 
@@ -276,27 +287,26 @@ namespace MailService
 
         }
 
-        public IEnumerable<Email> ReadEmails()
+        public IEnumerable<ScheduledEmail> ReadEmails()
         {
 
-            _logger.LogInformation(Environment.CurrentDirectory);
             using (var db = new LiteDatabase(_registerPath))
             {
-                var emailCollection = db.GetCollection<Email>("emails");
+               var emailCollection = db.GetCollection<ScheduledEmail>("emails");
 
-                var docs = emailCollection.FindAll();
+               var docs = emailCollection.FindAll();
 
-                return docs;
+               return docs;
 
             }
 
         }
 
-        public bool UpdateEmail(Email email)
+        public bool UpdateEmail(ScheduledEmail email)
         {
             using (var db = new LiteDatabase(_registerPath))
             {
-                var emailCollection = db.GetCollection<Email>("emails");
+                var emailCollection = db.GetCollection<ScheduledEmail>("emails");
 
                 var isUpdated = emailCollection.Update(email);
 
@@ -310,7 +320,7 @@ namespace MailService
         {
             using (var db = new LiteDatabase(_registerPath))
             {
-                var collection = db.GetCollection<Email>("emails");
+                var collection = db.GetCollection<ScheduledEmail>("emails");
                 return collection.Delete(x => x.Id > 0);
 
             }

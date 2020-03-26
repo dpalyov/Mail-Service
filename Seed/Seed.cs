@@ -9,9 +9,9 @@ namespace Seed
         {
             var ms = new MailClient();
 
-            var emailCollection = new Email[4]
+            var emailCollection = new ScheduledEmail[4]
             {
-                new Email
+                new ScheduledEmail
                 {
                     Id = 4,
                     From = "dimitar@visteon.com",
@@ -23,7 +23,7 @@ namespace Seed
                     ReminderInterval = 0.05,
 
                 },
-                  new Email
+                  new ScheduledEmail
                 {
                     Id = 5,
                     From = "random@visteon.com",
@@ -35,7 +35,7 @@ namespace Seed
                     ReminderInterval = 0.25,
 
                 },
-                   new Email
+                   new ScheduledEmail
                 {
                     Id = 6,
                     From = "random@visteon.com",
@@ -47,7 +47,7 @@ namespace Seed
                     ReminderInterval = 0.5,
 
                 },
-                    new Email
+                    new ScheduledEmail
                 {
                     Id = 7,
                     From = "random2@visteon.com",
